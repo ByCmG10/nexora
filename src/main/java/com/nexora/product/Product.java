@@ -2,6 +2,7 @@ package com.nexora.product;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +27,7 @@ public class Product {
 
     @NotNull
     @DecimalMin(value = "0.01")
+    @Digits(integer = 10, fraction = 2)
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
@@ -40,6 +42,14 @@ public class Product {
     private Integer minimumStock;
 
     protected Product() {
+    }
+
+    public Product(String name, String sku, BigDecimal price, Integer stock, Integer minimumStock) {
+        this.name = name;
+        this.sku = sku;
+        this.price = price;
+        this.stock = stock;
+        this.minimumStock = minimumStock;
     }
 
     public Long getId() {
