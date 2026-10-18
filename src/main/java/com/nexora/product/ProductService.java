@@ -2,6 +2,7 @@ package com.nexora.product;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -35,6 +36,14 @@ public class ProductService {
             }
             throw e;
         }
+    }
+
+    @Transactional
+    public Optional<Product> updateStock(String sku, Integer stock) {
+        return productRepository.findBySku(normalizeSku(sku)).map(product -> {
+            product.updateStock(stock);
+            return productRepository.save(product);
+        });
     }
 
     /** SKUs are case-insensitive and ignore surrounding whitespace: stored trimmed and upper-cased. */

@@ -52,6 +52,10 @@ public class Product {
         this.minimumStock = minimumStock;
     }
 
+    public void updateStock(Integer stock) {
+        this.stock = stock;
+    }
+
     public Long getId() {
         return id;
     }
