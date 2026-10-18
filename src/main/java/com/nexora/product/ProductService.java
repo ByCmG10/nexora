@@ -46,6 +46,15 @@ public class ProductService {
         });
     }
 
+    /** Permanently deletes the product; returns false when no product has that (normalised) SKU. */
+    @Transactional
+    public boolean deleteBySku(String sku) {
+        return productRepository.findBySku(normalizeSku(sku)).map(product -> {
+            productRepository.delete(product);
+            return true;
+        }).orElse(false);
+    }
+
     /** SKUs are case-insensitive and ignore surrounding whitespace: stored trimmed and upper-cased. */
     private static String normalizeSku(String sku) {
         return sku.strip().toUpperCase(Locale.ROOT);
