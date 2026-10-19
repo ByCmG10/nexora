@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -22,6 +23,11 @@ public class ProductController {
 
     public ProductController(ProductService productService) {
         this.productService = productService;
+    }
+
+    @GetMapping("/low-stock")
+    public List<Product> findLowStock() {
+        return productService.findLowStock();
     }
 
     @GetMapping("/sku/{sku}")

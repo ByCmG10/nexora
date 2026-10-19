@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -19,6 +20,11 @@ public class ProductService {
 
     public Optional<Product> findBySku(String sku) {
         return productRepository.findBySku(normalizeSku(sku));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Product> findLowStock() {
+        return productRepository.findLowStock();
     }
 
     public Product create(CreateProductRequest request) {
