@@ -4,6 +4,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -42,6 +43,14 @@ public class ProductService {
     public Optional<Product> updateStock(String sku, Integer stock) {
         return productRepository.findBySku(normalizeSku(sku)).map(product -> {
             product.updateStock(stock);
+            return productRepository.save(product);
+        });
+    }
+
+    @Transactional
+    public Optional<Product> updatePrice(String sku, BigDecimal price) {
+        return productRepository.findBySku(normalizeSku(sku)).map(product -> {
+            product.updatePrice(price);
             return productRepository.save(product);
         });
     }

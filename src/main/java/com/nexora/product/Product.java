@@ -56,6 +56,10 @@ public class Product {
         this.stock = stock;
     }
 
+    public void updatePrice(BigDecimal price) {
+        this.price = price;
+    }
+
     public Long getId() {
         return id;
     }

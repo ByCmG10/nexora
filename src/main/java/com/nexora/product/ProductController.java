@@ -39,6 +39,14 @@ public class ProductController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/sku/{sku}/price")
+    public ResponseEntity<Product> updatePrice(@PathVariable String sku,
+            @Valid @RequestBody UpdatePriceRequest request) {
+        return productService.updatePrice(sku, request.price())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/sku/{sku}")
     public ResponseEntity<Void> deleteBySku(@PathVariable String sku) {
         return productService.deleteBySku(sku)
