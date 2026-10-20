@@ -27,6 +27,11 @@ public class ProductService {
         return productRepository.findLowStock();
     }
 
+    @Transactional(readOnly = true)
+    public List<Product> searchByName(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name.strip());
+    }
+
     public Product create(CreateProductRequest request) {
         String sku = normalizeSku(request.sku());
         if (productRepository.existsBySku(sku)) {

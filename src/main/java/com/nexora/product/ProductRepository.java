@@ -12,6 +12,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     boolean existsBySku(String sku);
 
+    List<Product> findByNameContainingIgnoreCase(String name);
+
     @Query("select p from Product p where p.stock <= p.minimumStock order by p.id")
     List<Product> findLowStock();
 }
