@@ -157,9 +157,9 @@ class ProductLowStockTests {
 
     private List<String> snapshot() {
         return productRepository.findAll().stream()
-                .sorted(java.util.Comparator.comparing(Product::getId))
                 .map(p -> p.getId() + "|" + p.getName() + "|" + p.getSku() + "|" + p.getPrice().toPlainString()
                         + "|" + p.getStock() + "|" + p.getMinimumStock())
+                .sorted()
                 .toList();
     }
 

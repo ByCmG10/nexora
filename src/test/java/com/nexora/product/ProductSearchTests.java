@@ -12,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -244,9 +243,9 @@ class ProductSearchTests {
 
     private List<String> snapshot() {
         return productRepository.findAll().stream()
-                .sorted(Comparator.comparing(Product::getId))
                 .map(p -> p.getId() + "|" + p.getName() + "|" + p.getSku() + "|" + p.getPrice().toPlainString()
                         + "|" + p.getStock() + "|" + p.getMinimumStock())
+                .sorted()
                 .toList();
     }
 
