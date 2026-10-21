@@ -2,6 +2,7 @@ package com.nexora.product;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
@@ -30,6 +32,11 @@ public class ProductController {
     @GetMapping("/low-stock")
     public List<Product> findLowStock() {
         return productService.findLowStock();
+    }
+
+    @GetMapping("/by-max-price")
+    public List<Product> findByMaxPrice(@RequestParam @Positive BigDecimal price) {
+        return productService.findByMaxPrice(price);
     }
 
     @GetMapping("/out-of-stock")

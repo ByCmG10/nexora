@@ -33,6 +33,11 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public List<Product> findByMaxPrice(BigDecimal price) {
+        return productRepository.findByPriceLessThanEqualOrderByIdAsc(price);
+    }
+
+    @Transactional(readOnly = true)
     public List<Product> searchByName(String name) {
         return productRepository.findByNameContainingIgnoreCase(name.strip());
     }
