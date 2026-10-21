@@ -28,6 +28,11 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public List<Product> findOutOfStock() {
+        return productRepository.findByStockOrderByIdAsc(0);
+    }
+
+    @Transactional(readOnly = true)
     public List<Product> searchByName(String name) {
         return productRepository.findByNameContainingIgnoreCase(name.strip());
     }

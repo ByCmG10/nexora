@@ -32,6 +32,11 @@ public class ProductController {
         return productService.findLowStock();
     }
 
+    @GetMapping("/out-of-stock")
+    public List<Product> findOutOfStock() {
+        return productService.findOutOfStock();
+    }
+
     @GetMapping("/search")
     public List<Product> searchByName(@RequestParam @NotBlank String name) {
         return productService.searchByName(name);

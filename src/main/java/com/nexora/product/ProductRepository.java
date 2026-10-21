@@ -14,6 +14,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByNameContainingIgnoreCase(String name);
 
+    List<Product> findByStockOrderByIdAsc(Integer stock);
+
     @Query("select p from Product p where p.stock <= p.minimumStock order by p.id")
     List<Product> findLowStock();
 }
