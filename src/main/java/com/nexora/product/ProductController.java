@@ -71,6 +71,12 @@ public class ProductController {
         return productService.searchByName(name);
     }
 
+    @GetMapping("/search-by-stock")
+    public List<Product> searchByNameAndMinStock(@RequestParam @NotBlank String name,
+            @RequestParam @Min(0) Integer minStock) {
+        return productService.searchByNameAndMinStock(name, minStock);
+    }
+
     @GetMapping("/sku/{sku}")
     public ResponseEntity<Product> findBySku(@PathVariable String sku) {
         return productService.findBySku(sku)

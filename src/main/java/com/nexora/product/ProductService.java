@@ -65,6 +65,12 @@ public class ProductService {
         return productRepository.findByNameContainingIgnoreCase(name.strip());
     }
 
+    @Transactional(readOnly = true)
+    public List<Product> searchByNameAndMinStock(String name, Integer minStock) {
+        return productRepository.findByNameContainingIgnoreCaseAndStockGreaterThanEqualOrderByIdAsc(name.strip(),
+                minStock);
+    }
+
     public Product create(CreateProductRequest request) {
         String sku = normalizeSku(request.sku());
         if (productRepository.existsBySku(sku)) {
