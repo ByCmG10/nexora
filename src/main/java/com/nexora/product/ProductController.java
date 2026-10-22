@@ -39,6 +39,12 @@ public class ProductController {
         return productService.findByMaxPrice(price);
     }
 
+    @GetMapping("/by-price-range")
+    public List<Product> findByPriceRange(@RequestParam @Positive BigDecimal min,
+            @RequestParam @Positive BigDecimal max) {
+        return productService.findByPriceRange(min, max);
+    }
+
     @GetMapping("/out-of-stock")
     public List<Product> findOutOfStock() {
         return productService.findOutOfStock();

@@ -38,6 +38,14 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public List<Product> findByPriceRange(BigDecimal min, BigDecimal max) {
+        if (min.compareTo(max) > 0) {
+            throw new InvalidPriceRangeException(min, max);
+        }
+        return productRepository.findByPriceBetweenOrderByIdAsc(min, max);
+    }
+
+    @Transactional(readOnly = true)
     public List<Product> searchByName(String name) {
         return productRepository.findByNameContainingIgnoreCase(name.strip());
     }
