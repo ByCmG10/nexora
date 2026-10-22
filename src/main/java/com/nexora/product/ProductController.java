@@ -40,6 +40,11 @@ public class ProductController {
         return productService.findByMinStock(stock);
     }
 
+    @GetMapping("/by-max-stock")
+    public List<Product> findByMaxStock(@RequestParam @Min(0) Integer stock) {
+        return productService.findByMaxStock(stock);
+    }
+
     @GetMapping("/by-max-price")
     public List<Product> findByMaxPrice(@RequestParam @Positive BigDecimal price) {
         return productService.findByMaxPrice(price);
