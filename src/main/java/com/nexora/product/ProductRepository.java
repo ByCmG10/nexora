@@ -17,6 +17,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByStockOrderByIdAsc(Integer stock);
 
+    List<Product> findByStockGreaterThanEqualOrderByIdAsc(Integer stock);
+
     List<Product> findByPriceLessThanEqualOrderByIdAsc(BigDecimal price);
 
     List<Product> findByPriceBetweenOrderByIdAsc(BigDecimal min, BigDecimal max);

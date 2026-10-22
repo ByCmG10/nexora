@@ -1,6 +1,7 @@
 package com.nexora.product;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,11 @@ public class ProductController {
     @GetMapping("/low-stock")
     public List<Product> findLowStock() {
         return productService.findLowStock();
+    }
+
+    @GetMapping("/by-min-stock")
+    public List<Product> findByMinStock(@RequestParam @Min(0) Integer stock) {
+        return productService.findByMinStock(stock);
     }
 
     @GetMapping("/by-max-price")

@@ -33,6 +33,11 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public List<Product> findByMinStock(Integer stock) {
+        return productRepository.findByStockGreaterThanEqualOrderByIdAsc(stock);
+    }
+
+    @Transactional(readOnly = true)
     public List<Product> findByMaxPrice(BigDecimal price) {
         return productRepository.findByPriceLessThanEqualOrderByIdAsc(price);
     }
