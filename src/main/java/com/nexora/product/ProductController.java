@@ -35,6 +35,11 @@ public class ProductController {
         return productService.findLowStock();
     }
 
+    @GetMapping("/by-stock")
+    public List<Product> findByStock(@RequestParam @Min(0) Integer stock) {
+        return productService.findByStock(stock);
+    }
+
     @GetMapping("/by-min-stock")
     public List<Product> findByMinStock(@RequestParam @Min(0) Integer stock) {
         return productService.findByMinStock(stock);
