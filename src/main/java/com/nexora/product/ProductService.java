@@ -93,6 +93,13 @@ public class ProductService {
                 maxPrice);
     }
 
+    @Transactional(readOnly = true)
+    public List<Product> filterByNameMaxPriceAndMinStock(String name, BigDecimal maxPrice, Integer minStock) {
+        return productRepository
+                .findByNameContainingIgnoreCaseAndPriceLessThanEqualAndStockGreaterThanEqualOrderByIdAsc(name.strip(),
+                        maxPrice, minStock);
+    }
+
     public Product create(CreateProductRequest request) {
         String sku = normalizeSku(request.sku());
         if (productRepository.existsBySku(sku)) {
