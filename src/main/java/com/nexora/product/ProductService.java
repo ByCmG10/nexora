@@ -83,6 +83,11 @@ public class ProductService {
                 maxStock);
     }
 
+    @Transactional(readOnly = true)
+    public List<Product> searchByNameAndExactStock(String name, Integer stock) {
+        return productRepository.findByNameContainingIgnoreCaseAndStockOrderByIdAsc(name.strip(), stock);
+    }
+
     public Product create(CreateProductRequest request) {
         String sku = normalizeSku(request.sku());
         if (productRepository.existsBySku(sku)) {

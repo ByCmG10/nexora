@@ -21,6 +21,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByNameContainingIgnoreCaseAndStockLessThanEqualOrderByIdAsc(String name, Integer maxStock);
 
+    List<Product> findByNameContainingIgnoreCaseAndStockOrderByIdAsc(String name, Integer stock);
+
     List<Product> findByStockOrderByIdAsc(Integer stock);
 
     List<Product> findByStockGreaterThanEqualOrderByIdAsc(Integer stock);
