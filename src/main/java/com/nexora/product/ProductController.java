@@ -95,6 +95,12 @@ public class ProductController {
         return productService.searchByNameAndExactStock(name, stock);
     }
 
+    @GetMapping("/search-by-price-range")
+    public List<Product> searchByNameAndPriceRange(@RequestParam @NotBlank String name,
+            @RequestParam @Positive BigDecimal minPrice, @RequestParam @Positive BigDecimal maxPrice) {
+        return productService.searchByNameAndPriceRange(name, minPrice, maxPrice);
+    }
+
     @GetMapping("/sku/{sku}")
     public ResponseEntity<Product> findBySku(@PathVariable String sku) {
         return productService.findBySku(sku)

@@ -54,9 +54,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<Product> findByPriceRange(BigDecimal min, BigDecimal max) {
-        if (min.compareTo(max) > 0) {
-            throw new InvalidPriceRangeException(min, max);
-        }
+        requireValidPriceRange(min, max);
         return productRepository.findByPriceBetweenOrderByIdAsc(min, max);
     }
 
@@ -86,6 +84,13 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<Product> searchByNameAndExactStock(String name, Integer stock) {
         return productRepository.findByNameContainingIgnoreCaseAndStockOrderByIdAsc(name.strip(), stock);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Product> searchByNameAndPriceRange(String name, BigDecimal minPrice, BigDecimal maxPrice) {
+        requireValidPriceRange(minPrice, maxPrice);
+        return productRepository.findByNameContainingIgnoreCaseAndPriceBetweenOrderByIdAsc(name.strip(), minPrice,
+                maxPrice);
     }
 
     public Product create(CreateProductRequest request) {
@@ -129,6 +134,12 @@ public class ProductService {
             productRepository.delete(product);
             return true;
         }).orElse(false);
+    }
+
+    private static void requireValidPriceRange(BigDecimal min, BigDecimal max) {
+        if (min.compareTo(max) > 0) {
+            throw new InvalidPriceRangeException(min, max);
+        }
     }
 
     /** SKUs are case-insensitive and ignore surrounding whitespace: stored trimmed and upper-cased. */
