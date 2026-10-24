@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.math.BigDecimal;
@@ -105,6 +107,17 @@ public class ProductController {
     public List<Product> filterByNameMaxPriceAndMinStock(@RequestParam @NotBlank String name,
             @RequestParam @Positive BigDecimal maxPrice, @RequestParam @Min(0) Integer minStock) {
         return productService.filterByNameMaxPriceAndMinStock(name, maxPrice, minStock);
+    }
+
+    @GetMapping("/filter-optional")
+    public List<Product> filterOptional(@RequestParam(required = false) String name,
+            @RequestParam(required = false) @Positive BigDecimal maxPrice,
+            @RequestParam(required = false) @Min(0) Integer minStock) {
+        // @NotBlank cannot be used here: it rejects null, and an absent name is valid.
+        if (name != null && name.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must not be blank when provided");
+        }
+        return productService.filterOptional(name, maxPrice, minStock);
     }
 
     @GetMapping("/sku/{sku}")
