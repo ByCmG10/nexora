@@ -73,6 +73,11 @@ public class ProductController {
         return productService.findOutOfStock();
     }
 
+    @GetMapping("/search-by-sku")
+    public List<Product> searchBySku(@RequestParam @NotBlank String sku) {
+        return productService.searchBySku(sku);
+    }
+
     @GetMapping("/search")
     public List<Product> searchByName(@RequestParam @NotBlank String name) {
         return productService.searchByName(name);

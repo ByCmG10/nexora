@@ -66,6 +66,12 @@ public class ProductService {
         return productRepository.findByPriceBetweenOrderByIdAsc(min, max);
     }
 
+    /** Partial, case-insensitive match on the SKU; the exact lookup is {@link #findBySku(String)}. */
+    @Transactional(readOnly = true)
+    public List<Product> searchBySku(String sku) {
+        return productRepository.findBySkuContainingIgnoreCaseOrderByIdAsc(sku.strip());
+    }
+
     @Transactional(readOnly = true)
     public List<Product> searchByName(String name) {
         return productRepository.findByNameContainingIgnoreCase(name.strip());
