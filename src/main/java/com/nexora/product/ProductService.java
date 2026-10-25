@@ -1,14 +1,18 @@
 package com.nexora.product;
 
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -105,19 +109,21 @@ public class ProductService {
     }
 
     /**
-     * Applies only the filters that are present (not null), combined with AND, ordered by id ascending (the order
-     * comes from the specification; the pageable must be unsorted). Pagination is done by the database.
+     * Applies only the filters that are present (not null), combined with AND. Without a sort field the order is id
+     * ascending; with one, it is that field in the given direction (ascending when null) and then id ascending, so
+     * pages stay stable. The order comes from the specification (the pageable must be unsorted). Pagination is done
+     * by the database.
      */
     @Transactional(readOnly = true)
     public Page<Product> filterOptional(String name, BigDecimal minPrice, BigDecimal maxPrice, Integer minStock,
-            Integer maxStock, Pageable pageable) {
+            Integer maxStock, ProductSortField sortBy, Sort.Direction direction, Pageable pageable) {
         if (minPrice != null && maxPrice != null) {
             requireValidPriceRange(minPrice, maxPrice);
         }
         if (minStock != null && maxStock != null) {
             requireValidStockRange(minStock, maxStock);
         }
-        Specification<Product> spec = orderedById();
+        Specification<Product> spec = ordered(sortBy, direction);
         if (name != null) {
             spec = spec.and(nameContains(name.strip()));
         }
@@ -184,10 +190,21 @@ public class ProductService {
         }).orElse(false);
     }
 
-    /** Starting point of every filter: no restriction on the rows, results ordered by id ascending. */
-    private static Specification<Product> orderedById() {
+    /**
+     * Starting point of every filter: no restriction on the rows, and the one place where the order is defined.
+     * The requested field (if any) comes first; id ascending is always the last, unique tie-breaker, so equal
+     * prices or stocks never make the order (and therefore the pages) unstable. Without a requested field the
+     * order is exactly id ascending.
+     */
+    private static Specification<Product> ordered(ProductSortField sortBy, Sort.Direction direction) {
         return (root, query, cb) -> {
-            query.orderBy(cb.asc(root.get("id")));
+            List<Order> orders = new ArrayList<>();
+            if (sortBy != null) {
+                Path<Object> field = root.get(sortBy.attribute());
+                orders.add(direction == Sort.Direction.DESC ? cb.desc(field) : cb.asc(field));
+            }
+            orders.add(cb.asc(root.get("id")));
+            query.orderBy(orders);
             return cb.conjunction();
         };
     }

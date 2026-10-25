@@ -4,8 +4,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -119,14 +121,22 @@ public class ProductController {
             @RequestParam(required = false) @Min(0) Integer minStock,
             @RequestParam(required = false) @Min(0) Integer maxStock,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+            @RequestParam(required = false) @Pattern(regexp = "(?i)price|stock",
+                    message = "must be one of: price, stock") String sortBy,
+            @RequestParam(required = false) @Pattern(regexp = "(?i)asc|desc",
+                    message = "must be one of: asc, desc") String direction) {
         // @NotBlank cannot be used here: it rejects null, and an absent name is valid.
         if (name != null && name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must not be blank when provided");
         }
-        // Unsorted on purpose: the id ASC order is defined once, in the service's specification.
-        return new PagedModel<>(
-                productService.filterOptional(name, minPrice, maxPrice, minStock, maxStock, PageRequest.of(page, size)));
+        if (direction != null && sortBy == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "direction requires sortBy");
+        }
+        Sort.Direction sortDirection = direction == null ? Sort.Direction.ASC : Sort.Direction.fromString(direction);
+        // The pageable is unsorted on purpose: the order is defined once, in the service's specification.
+        return new PagedModel<>(productService.filterOptional(name, minPrice, maxPrice, minStock, maxStock,
+                ProductSortField.fromParameter(sortBy), sortDirection, PageRequest.of(page, size)));
     }
 
     @GetMapping("/sku/{sku}")
