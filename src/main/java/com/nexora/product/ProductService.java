@@ -103,10 +103,16 @@ public class ProductService {
 
     /** Applies only the filters that are present (not null), combined with AND, ordered by id. */
     @Transactional(readOnly = true)
-    public List<Product> filterOptional(String name, BigDecimal maxPrice, Integer minStock) {
+    public List<Product> filterOptional(String name, BigDecimal minPrice, BigDecimal maxPrice, Integer minStock) {
+        if (minPrice != null && maxPrice != null) {
+            requireValidPriceRange(minPrice, maxPrice);
+        }
         Specification<Product> spec = orderedById();
         if (name != null) {
             spec = spec.and(nameContains(name.strip()));
+        }
+        if (minPrice != null) {
+            spec = spec.and(priceAtLeast(minPrice));
         }
         if (maxPrice != null) {
             spec = spec.and(priceAtMost(maxPrice));
@@ -172,6 +178,10 @@ public class ProductService {
     private static Specification<Product> nameContains(String text) {
         String pattern = "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
         return (root, query, cb) -> cb.like(cb.upper(root.<String>get("name")), cb.upper(cb.literal(pattern)), '\\');
+    }
+
+    private static Specification<Product> priceAtLeast(BigDecimal minPrice) {
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.<BigDecimal>get("price"), minPrice);
     }
 
     private static Specification<Product> priceAtMost(BigDecimal maxPrice) {
