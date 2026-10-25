@@ -1,6 +1,9 @@
 package com.nexora.product;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,10 +104,13 @@ public class ProductService {
                         maxPrice, minStock);
     }
 
-    /** Applies only the filters that are present (not null), combined with AND, ordered by id. */
+    /**
+     * Applies only the filters that are present (not null), combined with AND, ordered by id ascending (the order
+     * comes from the specification; the pageable must be unsorted). Pagination is done by the database.
+     */
     @Transactional(readOnly = true)
-    public List<Product> filterOptional(String name, BigDecimal minPrice, BigDecimal maxPrice, Integer minStock,
-            Integer maxStock) {
+    public Page<Product> filterOptional(String name, BigDecimal minPrice, BigDecimal maxPrice, Integer minStock,
+            Integer maxStock, Pageable pageable) {
         if (minPrice != null && maxPrice != null) {
             requireValidPriceRange(minPrice, maxPrice);
         }
@@ -127,7 +133,12 @@ public class ProductService {
         if (maxStock != null) {
             spec = spec.and(stockAtMost(maxStock));
         }
-        return productRepository.findAll(spec);
+        if (pageable.getOffset() > Integer.MAX_VALUE) {
+            // JPA's firstResult is an int and no table is paged beyond it: such a page is necessarily past the
+            // last row, so answer with an empty page (and the real total) instead of failing.
+            return new PageImpl<>(List.of(), pageable, productRepository.count(spec));
+        }
+        return productRepository.findAll(spec, pageable);
     }
 
     public Product create(CreateProductRequest request) {

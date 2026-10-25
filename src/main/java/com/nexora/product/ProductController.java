@@ -1,9 +1,12 @@
 package com.nexora.product;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -110,16 +113,20 @@ public class ProductController {
     }
 
     @GetMapping("/filter-optional")
-    public List<Product> filterOptional(@RequestParam(required = false) String name,
+    public PagedModel<Product> filterOptional(@RequestParam(required = false) String name,
             @RequestParam(required = false) @Positive BigDecimal minPrice,
             @RequestParam(required = false) @Positive BigDecimal maxPrice,
             @RequestParam(required = false) @Min(0) Integer minStock,
-            @RequestParam(required = false) @Min(0) Integer maxStock) {
+            @RequestParam(required = false) @Min(0) Integer maxStock,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         // @NotBlank cannot be used here: it rejects null, and an absent name is valid.
         if (name != null && name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must not be blank when provided");
         }
-        return productService.filterOptional(name, minPrice, maxPrice, minStock, maxStock);
+        // Unsorted on purpose: the id ASC order is defined once, in the service's specification.
+        return new PagedModel<>(
+                productService.filterOptional(name, minPrice, maxPrice, minStock, maxStock, PageRequest.of(page, size)));
     }
 
     @GetMapping("/sku/{sku}")

@@ -1,5 +1,6 @@
 package com.nexora.product;
 
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -78,8 +79,8 @@ class ProductOptionalFilterTests {
     void noFilterReturnsEveryProductOrderedByIdAscending() throws Exception {
         filter()
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(7)))
-                .andExpect(jsonPath("$[*].sku",
+                .andExpect(jsonPath("$.content", hasSize(7)))
+                .andExpect(jsonPath("$.content[*].sku",
                         contains("CAM-001", "CAM-002", "CAM-003", "SUD-001", "PAN-001", "CAM-004", "ZAP-001")));
     }
 
@@ -88,13 +89,13 @@ class ProductOptionalFilterTests {
     void returnedProductsIncludeAllTheirFields() throws Exception {
         filter("name", "zapatillas")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].sku").value("ZAP-001"))
-                .andExpect(jsonPath("$[0].name").value("Zapatillas running"))
-                .andExpect(jsonPath("$[0].price").value(70.00))
-                .andExpect(jsonPath("$[0].stock").value(0))
-                .andExpect(jsonPath("$[0].minimumStock").value(2))
-                .andExpect(jsonPath("$[0].id").isNumber());
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].sku").value("ZAP-001"))
+                .andExpect(jsonPath("$.content[0].name").value("Zapatillas running"))
+                .andExpect(jsonPath("$.content[0].price").value(70.00))
+                .andExpect(jsonPath("$.content[0].stock").value(0))
+                .andExpect(jsonPath("$.content[0].minimumStock").value(2))
+                .andExpect(jsonPath("$.content[0].id").isNumber());
     }
 
     @Test
@@ -102,7 +103,7 @@ class ProductOptionalFilterTests {
     void onlyNameFiltersByNameAndIgnoresPriceAndStock() throws Exception {
         filter("name", "camiseta")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-002", "CAM-003", "SUD-001", "CAM-004")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-002", "CAM-003", "SUD-001", "CAM-004")));
     }
 
     @Test
@@ -110,7 +111,7 @@ class ProductOptionalFilterTests {
     void onlyMaxPriceFiltersByPriceAndIgnoresNameAndStock() throws Exception {
         filter("maxPrice", "50")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-003", "SUD-001", "PAN-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-003", "SUD-001", "PAN-001")));
     }
 
     @Test
@@ -118,7 +119,7 @@ class ProductOptionalFilterTests {
     void onlyMinStockFiltersByStockAndIgnoresNameAndPrice() throws Exception {
         filter("minStock", "10")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-002", "SUD-001", "PAN-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-002", "SUD-001", "PAN-001")));
     }
 
     // --- pairs and the triple (AND) -------------------------------------------------------------
@@ -128,7 +129,7 @@ class ProductOptionalFilterTests {
     void nameAndMaxPriceAreCombinedWithAnd() throws Exception {
         filter("name", "camiseta", "maxPrice", "50")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-003", "SUD-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-003", "SUD-001")));
     }
 
     @Test
@@ -136,7 +137,7 @@ class ProductOptionalFilterTests {
     void nameAndMinStockAreCombinedWithAnd() throws Exception {
         filter("name", "camiseta", "minStock", "10")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-002", "SUD-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-002", "SUD-001")));
     }
 
     @Test
@@ -144,7 +145,7 @@ class ProductOptionalFilterTests {
     void maxPriceAndMinStockAreCombinedWithAnd() throws Exception {
         filter("maxPrice", "50", "minStock", "10")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "SUD-001", "PAN-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "SUD-001", "PAN-001")));
     }
 
     @Test
@@ -152,10 +153,10 @@ class ProductOptionalFilterTests {
     void nameMaxPriceAndMinStockAreCombinedWithAnd() throws Exception {
         filter("name", "camiseta", "maxPrice", "50", "minStock", "10")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "SUD-001")))
-                .andExpect(jsonPath("$[*].price", contains(19.99, 50.00)))
-                .andExpect(jsonPath("$[*].stock", contains(25, 10)));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "SUD-001")))
+                .andExpect(jsonPath("$.content[*].price", contains(19.99, 50.00)))
+                .andExpect(jsonPath("$.content[*].stock", contains(25, 10)));
     }
 
     @Test
@@ -163,27 +164,27 @@ class ProductOptionalFilterTests {
     void combiningFiltersNeverReturnsMoreThanEachFilterAlone() throws Exception {
         // AND narrows: the triple is a subset of every pair, and every pair a subset of each single filter.
         filter("name", "camiseta", "maxPrice", "50", "minStock", "10")
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "SUD-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "SUD-001")));
         filter("name", "camiseta", "maxPrice", "50")
-                .andExpect(jsonPath("$", hasSize(3)));
+                .andExpect(jsonPath("$.content", hasSize(3)));
         filter("name", "camiseta")
-                .andExpect(jsonPath("$", hasSize(5)));
-        filter().andExpect(jsonPath("$", hasSize(7)));
+                .andExpect(jsonPath("$.content", hasSize(5)));
+        filter().andExpect(jsonPath("$.content", hasSize(7)));
     }
 
     @Test
     @WithMockUser
     void impossibleCombinationReturnsEmptyListEvenWhenEachFilterAloneMatches() throws Exception {
-        filter("name", "zapatillas").andExpect(jsonPath("$", hasSize(1)));
-        filter("maxPrice", "50").andExpect(jsonPath("$", hasSize(4)));
-        filter("minStock", "30").andExpect(jsonPath("$", hasSize(2)));
+        filter("name", "zapatillas").andExpect(jsonPath("$.content", hasSize(1)));
+        filter("maxPrice", "50").andExpect(jsonPath("$.content", hasSize(4)));
+        filter("minStock", "30").andExpect(jsonPath("$.content", hasSize(2)));
         // Zapatillas costs 70 (> 50) and has no stock, so no product has all three.
         filter("name", "zapatillas", "maxPrice", "50", "minStock", "1")
                 .andExpect(status().isOk())
-                .andExpect(content().string("[]"));
+                .andExpect(jsonPath("$.content", hasSize(0)));
         filter("name", "camiseta", "maxPrice", "20", "minStock", "26")
                 .andExpect(status().isOk())
-                .andExpect(content().string("[]"));
+                .andExpect(jsonPath("$.content", hasSize(0)));
     }
 
     @Test
@@ -195,7 +196,7 @@ class ProductOptionalFilterTests {
                         .param("name", "camiseta").param("maxPrice", "50").param("minStock", "10"))
                 .andReturn().getResponse().getContentAsString();
 
-        assertThat(optional).isEqualTo(mandatory);
+        assertThat(contentOf(optional)).isEqualTo(arrayOf(mandatory));
     }
 
     // --- inclusive limits -----------------------------------------------------------------------
@@ -203,19 +204,19 @@ class ProductOptionalFilterTests {
     @Test
     @WithMockUser
     void priceExactlyEqualToMaxPriceIsIncludedAndJustAboveIsExcluded() throws Exception {
-        filter("maxPrice", "50.00").andExpect(jsonPath("$[?(@.sku == 'SUD-001')]").isNotEmpty());
-        filter("maxPrice", "50.00").andExpect(jsonPath("$[?(@.sku == 'CAM-004')]").isEmpty());
-        filter("maxPrice", "49.99").andExpect(jsonPath("$[?(@.sku == 'SUD-001')]").isEmpty());
-        filter("maxPrice", "50.01").andExpect(jsonPath("$[?(@.sku == 'CAM-004')]").isNotEmpty());
+        filter("maxPrice", "50.00").andExpect(jsonPath("$.content[?(@.sku == 'SUD-001')]").isNotEmpty());
+        filter("maxPrice", "50.00").andExpect(jsonPath("$.content[?(@.sku == 'CAM-004')]").isEmpty());
+        filter("maxPrice", "49.99").andExpect(jsonPath("$.content[?(@.sku == 'SUD-001')]").isEmpty());
+        filter("maxPrice", "50.01").andExpect(jsonPath("$.content[?(@.sku == 'CAM-004')]").isNotEmpty());
     }
 
     @Test
     @WithMockUser
     void stockExactlyEqualToMinStockIsIncludedAndJustBelowIsExcluded() throws Exception {
-        filter("minStock", "10").andExpect(jsonPath("$[?(@.sku == 'SUD-001')]").isNotEmpty());
-        filter("minStock", "11").andExpect(jsonPath("$[?(@.sku == 'SUD-001')]").isEmpty());
-        filter("minStock", "9").andExpect(jsonPath("$[?(@.sku == 'CAM-004')]").isNotEmpty());
-        filter("minStock", "10").andExpect(jsonPath("$[?(@.sku == 'CAM-004')]").isEmpty());
+        filter("minStock", "10").andExpect(jsonPath("$.content[?(@.sku == 'SUD-001')]").isNotEmpty());
+        filter("minStock", "11").andExpect(jsonPath("$.content[?(@.sku == 'SUD-001')]").isEmpty());
+        filter("minStock", "9").andExpect(jsonPath("$.content[?(@.sku == 'CAM-004')]").isNotEmpty());
+        filter("minStock", "10").andExpect(jsonPath("$.content[?(@.sku == 'CAM-004')]").isEmpty());
     }
 
     @Test
@@ -223,7 +224,7 @@ class ProductOptionalFilterTests {
     void bothLimitsEqualToTheSameProductStillIncludeIt() throws Exception {
         filter("name", "sudadera", "maxPrice", "50.00", "minStock", "10")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("SUD-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("SUD-001")));
     }
 
     // --- minStock = 0 ---------------------------------------------------------------------------
@@ -233,16 +234,16 @@ class ProductOptionalFilterTests {
     void zeroMinStockIsValidAndDoesNotRestrictTheStock() throws Exception {
         filter("minStock", "0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(7)))
-                .andExpect(jsonPath("$[?(@.sku == 'ZAP-001')]").isNotEmpty());
-        filter("minStock", "1").andExpect(jsonPath("$[?(@.sku == 'ZAP-001')]").isEmpty());
+                .andExpect(jsonPath("$.content", hasSize(7)))
+                .andExpect(jsonPath("$.content[?(@.sku == 'ZAP-001')]").isNotEmpty());
+        filter("minStock", "1").andExpect(jsonPath("$.content[?(@.sku == 'ZAP-001')]").isEmpty());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"0", "00", "+0", "-0", "0000"})
     @WithMockUser
     void equivalentRepresentationsOfZeroMinStockAreValid(String minStock) throws Exception {
-        filter("minStock", minStock).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(7)));
+        filter("minStock", minStock).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(7)));
     }
 
     // --- name: partial / case-insensitive / trimmed ---------------------------------------------
@@ -251,15 +252,15 @@ class ProductOptionalFilterTests {
     @ValueSource(strings = {"cam", "iseta", "eta b", "sudadera cam", "style", "básica"})
     @WithMockUser
     void partialNameMatchesAnywhereInTheName(String name) throws Exception {
-        filter("name", name).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(org.hamcrest.Matchers.greaterThan(0))));
+        filter("name", name).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(org.hamcrest.Matchers.greaterThan(0))));
     }
 
     @Test
     @WithMockUser
     void partialMatchAtDifferentPositionsReturnsTheRightProducts() throws Exception {
-        filter("name", "style").andExpect(jsonPath("$[*].sku", contains("SUD-001")));
-        filter("name", "cargo").andExpect(jsonPath("$[*].sku", contains("PAN-001")));
-        filter("name", "iseta pre").andExpect(jsonPath("$[*].sku", contains("CAM-002")));
+        filter("name", "style").andExpect(jsonPath("$.content[*].sku", contains("SUD-001")));
+        filter("name", "cargo").andExpect(jsonPath("$.content[*].sku", contains("PAN-001")));
+        filter("name", "iseta pre").andExpect(jsonPath("$.content[*].sku", contains("CAM-002")));
     }
 
     @ParameterizedTest
@@ -268,14 +269,14 @@ class ProductOptionalFilterTests {
     void nameSearchIsCaseInsensitive(String name) throws Exception {
         filter("name", name)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-002", "CAM-003", "SUD-001", "CAM-004")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-002", "CAM-003", "SUD-001", "CAM-004")));
     }
 
     @Test
     @WithMockUser
     void caseInsensitivityAlsoWorksWithAccentedCharacters() throws Exception {
-        filter("name", "PANTALÓN").andExpect(jsonPath("$[*].sku", contains("PAN-001")));
-        filter("name", "BÁSICA").andExpect(jsonPath("$[*].sku", contains("CAM-001")));
+        filter("name", "PANTALÓN").andExpect(jsonPath("$.content[*].sku", contains("PAN-001")));
+        filter("name", "BÁSICA").andExpect(jsonPath("$.content[*].sku", contains("CAM-001")));
     }
 
     @ParameterizedTest
@@ -284,7 +285,7 @@ class ProductOptionalFilterTests {
     void leadingAndTrailingWhitespaceInTheNameIsRemoved(String name) throws Exception {
         filter("name", name, "maxPrice", "50", "minStock", "10")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "SUD-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "SUD-001")));
     }
 
     @Test
@@ -292,14 +293,14 @@ class ProductOptionalFilterTests {
     void internalWhitespaceOfTheNameIsKept() throws Exception {
         filter("name", "  camiseta premium  ")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-002")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-002")));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"%", "_", "%%", "c_miseta", "cam%eta", "camiseta%", "\\"})
     @WithMockUser
     void likeWildcardsAndBackslashInTheNameAreTakenLiterally(String name) throws Exception {
-        filter("name", name).andExpect(status().isOk()).andExpect(content().string("[]"));
+        filter("name", name).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(0)));
     }
 
     @Test
@@ -308,8 +309,8 @@ class ProductOptionalFilterTests {
         save("Algodón 100% Orgánico", "ALG-001", "9.00", 1);
         save("Cinta_Roja", "CIN-001", "2.00", 1);
 
-        filter("name", "100%").andExpect(jsonPath("$[*].sku", contains("ALG-001")));
-        filter("name", "a_r").andExpect(jsonPath("$[*].sku", contains("CIN-001")));
+        filter("name", "100%").andExpect(jsonPath("$.content[*].sku", contains("ALG-001")));
+        filter("name", "a_r").andExpect(jsonPath("$.content[*].sku", contains("CIN-001")));
     }
 
     // --- maxPrice: BigDecimal -------------------------------------------------------------------
@@ -320,22 +321,22 @@ class ProductOptionalFilterTests {
     void equivalentRepresentationsOfTheSameMaxPriceGiveTheSameResult(String maxPrice) throws Exception {
         filter("maxPrice", maxPrice)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-003", "SUD-001", "PAN-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-003", "SUD-001", "PAN-001")));
     }
 
     @Test
     @WithMockUser
     void maxPriceWithMoreDecimalsThanTheColumnIsComparedExactly() throws Exception {
-        filter("maxPrice", "49.999").andExpect(jsonPath("$[?(@.sku == 'SUD-001')]").isEmpty());
-        filter("maxPrice", "50.001").andExpect(jsonPath("$[?(@.sku == 'SUD-001')]").isNotEmpty());
-        filter("maxPrice", "50.009").andExpect(jsonPath("$[?(@.sku == 'CAM-004')]").isEmpty());
+        filter("maxPrice", "49.999").andExpect(jsonPath("$.content[?(@.sku == 'SUD-001')]").isEmpty());
+        filter("maxPrice", "50.001").andExpect(jsonPath("$.content[?(@.sku == 'SUD-001')]").isNotEmpty());
+        filter("maxPrice", "50.009").andExpect(jsonPath("$.content[?(@.sku == 'CAM-004')]").isEmpty());
     }
 
     @Test
     @WithMockUser
     void tinyAndVeryLargeMaxPricesBehave() throws Exception {
-        filter("maxPrice", "0.0000001").andExpect(status().isOk()).andExpect(content().string("[]"));
-        filter("maxPrice", "99999999999999999999999.99").andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(7)));
+        filter("maxPrice", "0.0000001").andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(0)));
+        filter("maxPrice", "99999999999999999999999.99").andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(7)));
     }
 
     // --- ordering / number of results -----------------------------------------------------------
@@ -348,12 +349,12 @@ class ProductOptionalFilterTests {
         save("Camiseta beta", "CAM-B", "25.00", 50);
 
         filter("name", "camiseta", "maxPrice", "50", "minStock", "10")
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "SUD-001", "CAM-A", "CAM-Z", "CAM-B")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "SUD-001", "CAM-A", "CAM-Z", "CAM-B")));
         filter("name", "camiseta")
-                .andExpect(jsonPath("$[*].sku",
+                .andExpect(jsonPath("$.content[*].sku",
                         contains("CAM-001", "CAM-002", "CAM-003", "SUD-001", "CAM-004", "CAM-A", "CAM-Z", "CAM-B")));
         filter("maxPrice", "20")
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-003", "CAM-A")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-003", "CAM-A")));
     }
 
     @Test
@@ -364,8 +365,8 @@ class ProductOptionalFilterTests {
         assertThat(first).isLessThan(last);
 
         filter()
-                .andExpect(jsonPath("$[0].id").value(first))
-                .andExpect(jsonPath("$[6].id").value(last));
+                .andExpect(jsonPath("$.content[0].id").value(first))
+                .andExpect(jsonPath("$.content[6].id").value(last));
     }
 
     @Test
@@ -373,16 +374,16 @@ class ProductOptionalFilterTests {
     void singleResultIsReturned() throws Exception {
         filter("name", "sudadera", "maxPrice", "50", "minStock", "10")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].sku").value("SUD-001"));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].sku").value("SUD-001"));
     }
 
     @Test
     @WithMockUser
     void noMatchesReturnsOkWithEmptyList() throws Exception {
-        filter("name", "sombrero").andExpect(status().isOk()).andExpect(content().string("[]"));
-        filter("maxPrice", "0.01").andExpect(status().isOk()).andExpect(content().string("[]"));
-        filter("minStock", "41").andExpect(status().isOk()).andExpect(content().string("[]"));
+        filter("name", "sombrero").andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(0)));
+        filter("maxPrice", "0.01").andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(0)));
+        filter("minStock", "41").andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(0)));
     }
 
     @Test
@@ -390,10 +391,10 @@ class ProductOptionalFilterTests {
     void emptyCatalogReturnsOkWithEmptyListForAnyCombination() throws Exception {
         productRepository.deleteAll();
 
-        filter().andExpect(status().isOk()).andExpect(content().string("[]"));
+        filter().andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(0)));
         filter("name", "camiseta", "maxPrice", "50", "minStock", "0")
                 .andExpect(status().isOk())
-                .andExpect(content().string("[]"));
+                .andExpect(jsonPath("$.content", hasSize(0)));
     }
 
     // --- 400: name present but blank ------------------------------------------------------------
@@ -497,22 +498,23 @@ class ProductOptionalFilterTests {
     @Test
     @WithMockUser
     void unknownParametersAreIgnored() throws Exception {
-        filter("color", "rojo", "page", "2")
+        // "page" used to be the example of an unknown parameter; since NXR-024 it is a real one, so "limit" is used.
+        filter("color", "rojo", "limit", "2")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(7)));
+                .andExpect(jsonPath("$.content", hasSize(7)));
         filter("name", "camiseta", "foo", "bar", "minStock", "10")
-                .andExpect(jsonPath("$[*].sku", contains("CAM-001", "CAM-002", "SUD-001")));
+                .andExpect(jsonPath("$.content[*].sku", contains("CAM-001", "CAM-002", "SUD-001")));
     }
 
     /** Spring converts an empty value of a numeric parameter to null, i.e. "not provided". */
     @Test
     @WithMockUser
     void emptyNumericParametersAreTreatedAsAbsent() throws Exception {
-        mockMvc.perform(get(URL + "?maxPrice=")).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(7)));
-        mockMvc.perform(get(URL + "?minStock=")).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(7)));
+        mockMvc.perform(get(URL + "?maxPrice=")).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(7)));
+        mockMvc.perform(get(URL + "?minStock=")).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(7)));
         mockMvc.perform(get(URL + "?name=camiseta&maxPrice=&minStock="))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(5)));
+                .andExpect(jsonPath("$.content", hasSize(5)));
     }
 
     // --- read-only / routing --------------------------------------------------------------------
@@ -548,7 +550,7 @@ class ProductOptionalFilterTests {
 
         filter("name", "filter optional")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].sku", contains("FILTER-OPTIONAL")));
+                .andExpect(jsonPath("$.content[*].sku", contains("FILTER-OPTIONAL")));
         mockMvc.perform(get("/api/products/sku/FILTER-OPTIONAL"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock").value(3));
@@ -650,10 +652,20 @@ class ProductOptionalFilterTests {
     void httpBasicWithCorrectCredentialsCanQuery() throws Exception {
         mockMvc.perform(request().with(httpBasic("nexora_test", "nexora-test-password")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(7)));
+                .andExpect(jsonPath("$.content", hasSize(7)));
         mockMvc.perform(request("name", "camiseta", "maxPrice", "50", "minStock", "10")
                         .with(httpBasic("nexora_test", "nexora-test-password")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.content", hasSize(2)));
+    }
+
+    /** The products of a paged response (its "content" array). */
+    private static Object contentOf(String pagedBody) {
+        return JsonPath.read(pagedBody, "$.content");
+    }
+
+    /** The products of a plain array response. */
+    private static Object arrayOf(String body) {
+        return JsonPath.read(body, "$");
     }
 }
