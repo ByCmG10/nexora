@@ -113,12 +113,13 @@ public class ProductController {
     public List<Product> filterOptional(@RequestParam(required = false) String name,
             @RequestParam(required = false) @Positive BigDecimal minPrice,
             @RequestParam(required = false) @Positive BigDecimal maxPrice,
-            @RequestParam(required = false) @Min(0) Integer minStock) {
+            @RequestParam(required = false) @Min(0) Integer minStock,
+            @RequestParam(required = false) @Min(0) Integer maxStock) {
         // @NotBlank cannot be used here: it rejects null, and an absent name is valid.
         if (name != null && name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must not be blank when provided");
         }
-        return productService.filterOptional(name, minPrice, maxPrice, minStock);
+        return productService.filterOptional(name, minPrice, maxPrice, minStock, maxStock);
     }
 
     @GetMapping("/sku/{sku}")

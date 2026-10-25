@@ -103,9 +103,13 @@ public class ProductService {
 
     /** Applies only the filters that are present (not null), combined with AND, ordered by id. */
     @Transactional(readOnly = true)
-    public List<Product> filterOptional(String name, BigDecimal minPrice, BigDecimal maxPrice, Integer minStock) {
+    public List<Product> filterOptional(String name, BigDecimal minPrice, BigDecimal maxPrice, Integer minStock,
+            Integer maxStock) {
         if (minPrice != null && maxPrice != null) {
             requireValidPriceRange(minPrice, maxPrice);
+        }
+        if (minStock != null && maxStock != null) {
+            requireValidStockRange(minStock, maxStock);
         }
         Specification<Product> spec = orderedById();
         if (name != null) {
@@ -119,6 +123,9 @@ public class ProductService {
         }
         if (minStock != null) {
             spec = spec.and(stockAtLeast(minStock));
+        }
+        if (maxStock != null) {
+            spec = spec.and(stockAtMost(maxStock));
         }
         return productRepository.findAll(spec);
     }
@@ -190,6 +197,16 @@ public class ProductService {
 
     private static Specification<Product> stockAtLeast(Integer minStock) {
         return (root, query, cb) -> cb.greaterThanOrEqualTo(root.<Integer>get("stock"), minStock);
+    }
+
+    private static Specification<Product> stockAtMost(Integer maxStock) {
+        return (root, query, cb) -> cb.lessThanOrEqualTo(root.<Integer>get("stock"), maxStock);
+    }
+
+    private static void requireValidStockRange(Integer minStock, Integer maxStock) {
+        if (minStock > maxStock) {
+            throw new InvalidStockRangeException(minStock, maxStock);
+        }
     }
 
     private static void requireValidPriceRange(BigDecimal min, BigDecimal max) {
