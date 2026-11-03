@@ -38,89 +38,93 @@ public class ProductController {
     }
 
     @GetMapping("/low-stock")
-    public List<Product> findLowStock() {
-        return productService.findLowStock();
+    public List<ProductResponse> findLowStock() {
+        return toResponses(productService.findLowStock());
     }
 
     @GetMapping("/by-stock")
-    public List<Product> findByStock(@RequestParam @Min(0) Integer stock) {
-        return productService.findByStock(stock);
+    public List<ProductResponse> findByStock(@RequestParam @Min(0) Integer stock) {
+        return toResponses(productService.findByStock(stock));
     }
 
     @GetMapping("/by-min-stock")
-    public List<Product> findByMinStock(@RequestParam @Min(0) Integer stock) {
-        return productService.findByMinStock(stock);
+    public List<ProductResponse> findByMinStock(@RequestParam @Min(0) Integer stock) {
+        return toResponses(productService.findByMinStock(stock));
     }
 
     @GetMapping("/by-max-stock")
-    public List<Product> findByMaxStock(@RequestParam @Min(0) Integer stock) {
-        return productService.findByMaxStock(stock);
+    public List<ProductResponse> findByMaxStock(@RequestParam @Min(0) Integer stock) {
+        return toResponses(productService.findByMaxStock(stock));
     }
 
     @GetMapping("/by-max-price")
-    public List<Product> findByMaxPrice(@RequestParam @Positive BigDecimal price) {
-        return productService.findByMaxPrice(price);
+    public List<ProductResponse> findByMaxPrice(@RequestParam @Positive BigDecimal price) {
+        return toResponses(productService.findByMaxPrice(price));
     }
 
     @GetMapping("/by-price-range")
-    public List<Product> findByPriceRange(@RequestParam @Positive BigDecimal min,
+    public List<ProductResponse> findByPriceRange(@RequestParam @Positive BigDecimal min,
             @RequestParam @Positive BigDecimal max) {
-        return productService.findByPriceRange(min, max);
+        return toResponses(productService.findByPriceRange(min, max));
     }
 
     @GetMapping("/out-of-stock")
-    public List<Product> findOutOfStock() {
-        return productService.findOutOfStock();
+    public List<ProductResponse> findOutOfStock() {
+        return toResponses(productService.findOutOfStock());
     }
 
     @GetMapping("/search-by-sku")
-    public List<Product> searchBySku(@RequestParam @NotBlank String sku) {
-        return productService.searchBySku(sku);
+    public List<ProductResponse> searchBySku(@RequestParam @NotBlank String sku) {
+        return toResponses(productService.searchBySku(sku));
     }
 
     @GetMapping("/search")
-    public List<Product> searchByName(@RequestParam @NotBlank String name) {
-        return productService.searchByName(name);
+    public List<ProductResponse> searchByName(@RequestParam @NotBlank String name) {
+        return toResponses(productService.searchByName(name));
     }
 
     @GetMapping("/search-by-stock")
-    public List<Product> searchByNameAndMinStock(@RequestParam @NotBlank String name,
+    public List<ProductResponse> searchByNameAndMinStock(@RequestParam @NotBlank String name,
             @RequestParam @Min(0) Integer minStock) {
-        return productService.searchByNameAndMinStock(name, minStock);
+        return toResponses(productService.searchByNameAndMinStock(name, minStock));
     }
 
     @GetMapping("/search-by-price")
-    public List<Product> searchByNameAndMaxPrice(@RequestParam @NotBlank String name,
+    public List<ProductResponse> searchByNameAndMaxPrice(@RequestParam @NotBlank String name,
             @RequestParam @Positive BigDecimal maxPrice) {
-        return productService.searchByNameAndMaxPrice(name, maxPrice);
+        return toResponses(productService.searchByNameAndMaxPrice(name, maxPrice));
     }
 
     @GetMapping("/search-by-max-stock")
-    public List<Product> searchByNameAndMaxStock(@RequestParam @NotBlank String name,
+    public List<ProductResponse> searchByNameAndMaxStock(@RequestParam @NotBlank String name,
             @RequestParam @Min(0) Integer maxStock) {
-        return productService.searchByNameAndMaxStock(name, maxStock);
+        return toResponses(productService.searchByNameAndMaxStock(name, maxStock));
     }
 
     @GetMapping("/search-by-exact-stock")
-    public List<Product> searchByNameAndExactStock(@RequestParam @NotBlank String name,
+    public List<ProductResponse> searchByNameAndExactStock(@RequestParam @NotBlank String name,
             @RequestParam @Min(0) Integer stock) {
-        return productService.searchByNameAndExactStock(name, stock);
+        return toResponses(productService.searchByNameAndExactStock(name, stock));
     }
 
     @GetMapping("/search-by-price-range")
-    public List<Product> searchByNameAndPriceRange(@RequestParam @NotBlank String name,
+    public List<ProductResponse> searchByNameAndPriceRange(@RequestParam @NotBlank String name,
             @RequestParam @Positive BigDecimal minPrice, @RequestParam @Positive BigDecimal maxPrice) {
-        return productService.searchByNameAndPriceRange(name, minPrice, maxPrice);
+        return toResponses(productService.searchByNameAndPriceRange(name, minPrice, maxPrice));
     }
 
     @GetMapping("/filter")
-    public List<Product> filterByNameMaxPriceAndMinStock(@RequestParam @NotBlank String name,
+    public List<ProductResponse> filterByNameMaxPriceAndMinStock(@RequestParam @NotBlank String name,
             @RequestParam @Positive BigDecimal maxPrice, @RequestParam @Min(0) Integer minStock) {
-        return productService.filterByNameMaxPriceAndMinStock(name, maxPrice, minStock);
+        return toResponses(productService.filterByNameMaxPriceAndMinStock(name, maxPrice, minStock));
     }
 
+    /**
+     * The general, recommended way to filter: every filter is optional and combinable, with pagination and sorting.
+     * The specific endpoints above (by-*, search-*, filter) are kept for compatibility and each has a fixed meaning.
+     */
     @GetMapping("/filter-optional")
-    public PagedModel<Product> filterOptional(@RequestParam(required = false) String name,
+    public PagedModel<ProductResponse> filterOptional(@RequestParam(required = false) String name,
             @RequestParam(required = false) @Positive BigDecimal minPrice,
             @RequestParam(required = false) @Positive BigDecimal maxPrice,
             @RequestParam(required = false) @Min(0) Integer minStock,
@@ -141,28 +145,32 @@ public class ProductController {
         Sort.Direction sortDirection = direction == null ? Sort.Direction.ASC : Sort.Direction.fromString(direction);
         // The pageable is unsorted on purpose: the order is defined once, in the service's specification.
         return new PagedModel<>(productService.filterOptional(name, minPrice, maxPrice, minStock, maxStock,
-                ProductSortField.fromParameter(sortBy), sortDirection, PageRequest.of(page, size)));
+                ProductSortField.fromParameter(sortBy), sortDirection, PageRequest.of(page, size))
+                .map(ProductResponse::from));
     }
 
     @GetMapping("/sku/{sku}")
-    public ResponseEntity<Product> findBySku(@PathVariable String sku) {
+    public ResponseEntity<ProductResponse> findBySku(@PathVariable String sku) {
         return productService.findBySku(sku)
+                .map(ProductResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/sku/{sku}/stock")
-    public ResponseEntity<Product> updateStock(@PathVariable String sku,
+    public ResponseEntity<ProductResponse> updateStock(@PathVariable String sku,
             @Valid @RequestBody UpdateStockRequest request) {
         return productService.updateStock(sku, request.stock())
+                .map(ProductResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/sku/{sku}/price")
-    public ResponseEntity<Product> updatePrice(@PathVariable String sku,
+    public ResponseEntity<ProductResponse> updatePrice(@PathVariable String sku,
             @Valid @RequestBody UpdatePriceRequest request) {
         return productService.updatePrice(sku, request.price())
+                .map(ProductResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -175,13 +183,17 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Product> create(@Valid @RequestBody CreateProductRequest request) {
-        Product created = productService.create(request);
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody CreateProductRequest request) {
+        ProductResponse created = ProductResponse.from(productService.create(request));
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/products/sku/{sku}")
                 .encode() // strict encoding of the SKU variable (spaces, '?', '#', '%', '/'...)
-                .buildAndExpand(created.getSku())
+                .buildAndExpand(created.sku())
                 .toUri();
         return ResponseEntity.created(location).body(created);
+    }
+
+    private static List<ProductResponse> toResponses(List<Product> products) {
+        return products.stream().map(ProductResponse::from).toList();
     }
 }

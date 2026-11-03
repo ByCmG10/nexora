@@ -12,11 +12,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** A DataIntegrityViolationException is a 409 only when the SKU really is a duplicate. */
@@ -55,14 +57,14 @@ class ProductIntegrityViolationTests {
 
     @Test
     @WithMockUser
-    void otherIntegrityViolationsAreNotReportedAsDuplicateSku() {
+    void otherIntegrityViolationsAreNotReportedAsDuplicateSku() throws Exception {
         doThrow(new DataIntegrityViolationException("not null violation on another column"))
                 .when(productRepository).save(any(Product.class));
 
-        // Propagated as a server error (500 over HTTP), never converted into a 409.
-        assertThatThrownBy(() -> mockMvc.perform(
-                post("/api/products").contentType(MediaType.APPLICATION_JSON).content(BODY)))
-                .hasRootCauseInstanceOf(DataIntegrityViolationException.class);
+        // A server error (500) with a generic body, never converted into a 409 and never leaking the cause.
+        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON).content(BODY))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(not(containsString("not null violation"))));
         assertThat(productRepository.existsBySku("RACE-1")).isFalse();
     }
 }
