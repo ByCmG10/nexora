@@ -1,5 +1,6 @@
 package com.nexora.product;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -27,6 +28,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
+@Tag(name = "Products", description = "Product inventory, identified by SKU (case-insensitive, stored upper-case)")
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
