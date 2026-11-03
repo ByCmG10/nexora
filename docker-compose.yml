@@ -1,0 +1,22 @@
+# Local PostgreSQL for NEXORA development. Values come from the environment or a local .env file
+# (see .env.example); .env is never committed.
+services:
+  postgres:
+    image: postgres:18
+    container_name: nexora-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-nexora}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - nexora-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  nexora-pgdata:
